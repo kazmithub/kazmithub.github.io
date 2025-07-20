@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Add Capacity Providers in ECS Cluster - Ahsan Kazmi</title>
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <h2>Ahsan Kazmi</h2>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#experience" class="nav-link">Experience</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blog Post Content -->
+    <article class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Blogs
+                </a>
+                <h1 class="blog-post-title">How to Add Capacity Providers in the Existing ECS Cluster</h1>
+                <div class="blog-post-meta">
+                    <span class="blog-date">Published by Ahsan Kazmi</span>
+                    <div class="blog-post-tags">
+                        <span class="blog-tag">AWS ECS</span>
+                        <span class="blog-tag">Capacity Providers</span>
+                        <span class="blog-tag">Container Orchestration</span>
+                        <span class="blog-tag">Cost Optimization</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <h2>Introduction</h2>
+                <p>Amazon ECS Capacity Providers are a powerful feature that helps optimize resource utilization and
+                    cost management in your containerized workloads. In this comprehensive guide, I'll walk you through
+                    the process of adding capacity providers to your existing ECS clusters.</p>
+
+                <h2>What are ECS Capacity Providers?</h2>
+                <p>Capacity providers are used to manage the infrastructure that your tasks run on. They provide a way
+                    to specify which type of infrastructure to use for your tasks and services, allowing for better
+                    resource optimization and cost control.</p>
+
+                <h2>Prerequisites</h2>
+                <ul>
+                    <li>Existing ECS cluster</li>
+                    <li>AWS CLI configured with appropriate permissions</li>
+                    <li>Understanding of ECS concepts</li>
+                    <li>IAM roles and policies configured</li>
+                </ul>
+
+                <h2>Step-by-Step Implementation</h2>
+
+                <h3>1. Create Auto Scaling Group</h3>
+                <p>First, you need to create an Auto Scaling Group that will be managed by the capacity provider:</p>
+                <pre><code>aws autoscaling create-auto-scaling-group \
+    --auto-scaling-group-name my-ecs-asg \
+    --launch-template LaunchTemplateName=my-ecs-launch-template \
+    --min-size 0 \
+    --max-size 10 \
+    --desired-capacity 2 \
+    --vpc-zone-identifier subnet-12345,subnet-67890</code></pre>
+
+                <h3>2. Create Capacity Provider</h3>
+                <p>Next, create the capacity provider and associate it with your Auto Scaling Group:</p>
+                <pre><code>aws ecs create-capacity-provider \
+    --name my-capacity-provider \
+    --auto-scaling-group-provider autoScalingGroupArn=arn:aws:autoscaling:region:account:autoScalingGroup:uuid:autoScalingGroupName/my-ecs-asg,managedScaling='{status=ENABLED,targetCapacity=80,minimumScalingStepSize=1,maximumScalingStepSize=1000}',managedTerminationProtection=ENABLED</code></pre>
+
+                <h3>3. Update ECS Cluster</h3>
+                <p>Associate the capacity provider with your existing ECS cluster:</p>
+                <pre><code>aws ecs put-cluster-capacity-providers \
+    --cluster my-existing-cluster \
+    --capacity-providers my-capacity-provider \
+    --default-capacity-provider-strategy capacityProvider=my-capacity-provider,weight=1</code></pre>
+
+                <h2>Best Practices</h2>
+                <ul>
+                    <li><strong>Mixed Instance Types:</strong> Use multiple instance types for better availability and
+                        cost optimization</li>
+                    <li><strong>Spot Instances:</strong> Consider using Spot instances for non-critical workloads</li>
+                    <li><strong>Monitoring:</strong> Set up CloudWatch alarms for capacity provider metrics</li>
+                    <li><strong>Scaling Policies:</strong> Configure appropriate scaling policies based on your workload
+                        patterns</li>
+                </ul>
+
+                <h2>Troubleshooting Common Issues</h2>
+                <h3>Capacity Provider Not Scaling</h3>
+                <p>If your capacity provider isn't scaling as expected, check:</p>
+                <ul>
+                    <li>IAM permissions for the ECS service</li>
+                    <li>Auto Scaling Group configuration</li>
+                    <li>Target capacity settings</li>
+                </ul>
+
+                <h2>Conclusion</h2>
+                <p>Adding capacity providers to existing ECS clusters is a straightforward process that can
+                    significantly improve your infrastructure's efficiency and cost-effectiveness. By following these
+                    steps and best practices, you can ensure optimal resource utilization for your containerized
+                    applications.</p>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

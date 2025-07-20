@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Disaster Recovery Strategy - Ahsan Kazmi</title>
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <h2>Ahsan Kazmi</h2>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#experience" class="nav-link">Experience</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blog Post Content -->
+    <article class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Blogs
+                </a>
+                <h1 class="blog-post-title">Enterprise-Grade Disaster Recovery for AWS ECS Workloads: A Complete
+                    Implementation Guide</h1>
+                <div class="blog-post-meta">
+                    <span class="blog-date">Published by Ahsan Kazmi • March 15, 2023</span>
+                    <div class="blog-post-tags">
+                        <span class="blog-tag">AWS</span>
+                        <span class="blog-tag">Disaster Recovery</span>
+                        <span class="blog-tag">Well-Architected</span>
+                        <span class="blog-tag">Infrastructure</span>
+                        <span class="blog-tag">Business Continuity</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <h2>Introduction</h2>
+                <p>In today's digital economy, downtime isn't just an inconvenience—it's a business-critical threat that
+                    can cost organizations millions in revenue, damage customer trust, and impact regulatory compliance.
+                    As businesses increasingly rely on containerized workloads running on Amazon ECS, implementing a
+                    robust disaster recovery strategy becomes paramount for operational resilience.</p>
+
+                <p>This comprehensive guide outlines enterprise-grade disaster recovery strategies specifically designed
+                    for AWS ECS workloads, incorporating lessons learned from implementing DR solutions across
+                    healthcare, financial services, and e-commerce platforms. We'll explore practical implementations
+                    using the AWS Well-Architected Framework principles, with real-world code examples and automation
+                    scripts.</p>
+
+                <h2>Understanding Disaster Recovery Fundamentals</h2>
+
+                <h3>Healthcare Cloud Migration</h3>
+                <p>I architected and led the migration of a HIPAA-compliant healthcare platform to AWS using Terraform
+                    and Kubernetes. The DR strategy included cross-region encrypted backups with 15-minute RPO for
+                    patient data, automated failover using Route 53 health checks, and cost optimization through
+                    reserved instances.</p>
+
+                <h3>Restaurant Chain Platform</h3>
+                <p>For a national restaurant chain, I designed a multi-region Kubernetes environment spanning GCP and
+                    AWS with active-active configuration for order processing systems and real-time inventory
+                    synchronization across regions.</p>
+
+                <h2>Service-Specific DR Strategies</h2>
+
+                <h3>Infrastructure as Code (VPC)</h3>
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code>resource "aws_vpc" "main" {
+  for_each = var.regions
+  
+  provider             = aws.${each.key}
+  cidr_block          = var.vpc_cidrs[each.key]
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name        = "vpc-${each.key}"
+    Environment = var.environment
+    DR_Region   = each.key == var.primary_region ? var.secondary_region : var.primary_region
+  }
+}</code></pre>
+                </div>
+
+                <h2>Conclusion</h2>
+                <p>A well-architected disaster recovery strategy ensures business continuity and customer trust. The
+                    strategies outlined here have been battle-tested across multiple industries and compliance
+                    requirements.</p>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#10b981';
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

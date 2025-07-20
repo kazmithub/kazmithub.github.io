@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS CIS Compliance Checklist - Ahsan Kazmi</title>
+  <link rel="stylesheet" href="styles-new.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html">
+          <h2>Ahsan Kazmi</h2>
+        </a>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="index.html#about" class="nav-link">About</a></li>
+        <li><a href="index.html#experience" class="nav-link">Experience</a></li>
+        <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+        <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+        <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Blog Post Content -->
+  <article class="blog-post">
+    <div class="container">
+      <div class="blog-post-header">
+        <a href="index.html#blogs" class="back-link">
+          <i class="fas fa-arrow-left"></i> Back to Blogs
+        </a>
+        <h1 class="blog-post-title">AWS CIS Compliance Checklist: A Comprehensive Security Guide</h1>
+        <div class="blog-post-meta">
+          <span class="blog-date">Published by Ahsan Kazmi • August 22, 2022</span>
+          <div class="blog-post-tags">
+            <span class="blog-tag">AWS</span>
+            <span class="blog-tag">CIS Compliance</span>
+            <span class="blog-tag">Security</span>
+            <span class="blog-tag">Best Practices</span>
+            <span class="blog-tag">Governance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blog-post-content">
+        <h2>Introduction</h2>
+        <p>The Center for Internet Security (CIS) AWS Foundations Benchmark provides a comprehensive set of security
+          configuration best practices for AWS. Having implemented CIS compliance across healthcare, financial, and
+          e-commerce platforms, I've compiled this practical checklist to help organizations achieve and maintain CIS
+          compliance in their AWS environments.</p>
+
+        <h2>Why CIS Compliance Matters</h2>
+        <p>CIS benchmarks are globally recognized security standards that help organizations:</p>
+        <ul>
+          <li>Reduce security vulnerabilities and attack surface</li>
+          <li>Meet regulatory compliance requirements</li>
+          <li>Establish security baselines and governance</li>
+          <li>Improve overall security posture</li>
+        </ul>
+
+        <h2>Section 1: Identity and Access Management</h2>
+
+        <h3>1.1 Root Account Security</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_cloudwatch_log_metric_filter" "root_usage" {
+  name           = "root-account-usage"
+  log_group_name = aws_cloudwatch_log_group.cloudtrail.name
+  pattern        = "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }"
+
+  metric_transformation {
+    name      = "RootAccountUsageCount"
+    namespace = "CISBenchmark"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "root_usage_alarm" {
+  alarm_name          = "root-account-usage-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "RootAccountUsageCount"
+  namespace           = "CISBenchmark"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "1"
+  alarm_description   = "Root account usage detected"
+  alarm_actions       = [aws_sns_topic.security_alerts.arn]
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Avoid using root account for daily activities</li>
+          <li>✅ Enable MFA on root account</li>
+          <li>✅ Remove or deactivate root access keys</li>
+          <li>✅ Set up root account monitoring alerts</li>
+          <li>✅ Avoid inline policies - use managed policies instead</li>
+        </ul>
+
+        <h3>1.2 Multi-Factor Authentication</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_iam_policy" "require_mfa" {
+  name        = "RequireMFAPolicy"
+  description = "Policy to require MFA for all operations"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "DenyAllExceptUsersWithMFA"
+        Effect = "Deny"
+        NotAction = [
+          "iam:CreateVirtualMFADevice",
+          "iam:EnableMFADevice",
+          "iam:GetUser",
+          "iam:ListMFADevices",
+          "iam:ListVirtualMFADevices",
+          "iam:ResyncMFADevice",
+          "sts:GetSessionToken"
+        ]
+        Resource = "*"
+        Condition = {
+          BoolIfExists = {
+            "aws:MultiFactorAuthPresent" = "false"
+          }
+        }
+      }
+    ]
+  })
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Enable MFA for all IAM users</li>
+          <li>✅ Require MFA for console access</li>
+          <li>✅ Implement MFA for privileged operations</li>
+          <li>✅ Avoid inline policies - use managed policies instead</li>
+        </ul>
+
+        <h3>1.3 Password Policy</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_iam_account_password_policy" "strict" {
+  minimum_password_length        = 14
+  require_lowercase_characters   = true
+  require_numbers               = true
+  require_uppercase_characters   = true
+  require_symbols               = true
+  allow_users_to_change_password = true
+  max_password_age              = 90
+  password_reuse_prevention     = 24
+}</code></pre>
+        </div>
+
+        <h2>Section 2: Logging and Monitoring</h2>
+
+        <h3>2.1 CloudTrail Configuration</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_cloudtrail" "main" {
+  name           = "main-cloudtrail"
+  s3_bucket_name = aws_s3_bucket.cloudtrail.bucket
+  
+  include_global_service_events = true
+  is_multi_region_trail        = true
+  enable_logging               = true
+  
+  kms_key_id = aws_kms_key.cloudtrail.arn
+  
+  event_selector {
+    read_write_type                 = "All"
+    include_management_events       = true
+    data_resource {
+      type   = "AWS::S3::Object"
+      values = ["arn:aws:s3:::*/*"]
+    }
+  }
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Enable CloudTrail in all regions</li>
+          <li>✅ Enable log file validation</li>
+          <li>✅ Encrypt CloudTrail logs with KMS</li>
+          <li>✅ Configure CloudTrail log file integrity validation</li>
+        </ul>
+
+        <h3>2.2 CloudWatch Monitoring</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code># Root account usage alarm
+resource "aws_cloudwatch_metric_alarm" "root_usage" {
+  alarm_name          = "root-account-usage"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "RootAccountUsage"
+  namespace           = "CISBenchmark"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "1"
+  alarm_description   = "Root account usage detected"
+  alarm_actions       = [aws_sns_topic.security_alerts.arn]
+}</code></pre>
+        </div>
+
+        <h2>Section 3: Storage Security</h2>
+
+        <h3>3.1 S3 Bucket Security</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_s3_bucket" "secure" {
+  bucket = "my-secure-bucket"
+}
+
+resource "aws_s3_bucket_public_access_block" "secure" {
+  bucket = aws_s3_bucket.secure.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "secure" {
+  bucket = aws_s3_bucket.secure.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = aws_kms_key.s3.arn
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "secure" {
+  bucket = aws_s3_bucket.secure.id
+  versioning_configuration {
+    status     = "Enabled"
+    mfa_delete = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_policy" "secure_transport" {
+  bucket = aws_s3_bucket.secure.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyInsecureConnections"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.secure.arn,
+          "${aws_s3_bucket.secure.arn}/*"
+        ]
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      }
+    ]
+  })
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Block public access to S3 buckets</li>
+          <li>✅ Enable S3 bucket encryption</li>
+          <li>✅ Enable S3 bucket logging</li>
+          <li>✅ Enable S3 bucket versioning</li>
+          <li>✅ Configure S3 bucket MFA delete</li>
+          <li>✅ Enforce secure transport policy</li>
+        </ul>
+
+        <h2>Section 4: Network Security</h2>
+
+        <h3>4.1 VPC Security</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name = "main-vpc"
+  }
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  iam_role_arn    = aws_iam_role.flow_log.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.main.id
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  name              = "/aws/vpc/flowlogs"
+  retention_in_days = 30
+  kms_key_id        = aws_kms_key.logs.arn
+}
+
+resource "aws_iam_role" "flow_log" {
+  name = "flowlogsRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+      }
+    ]
+  })
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Remove default VPCs</li>
+          <li>✅ Restrict security group rules</li>
+          <li>✅ Enable VPC Flow Logs</li>
+          <li>✅ Use NACLs for additional security</li>
+        </ul>
+
+        <h3>4.2 Security Group Best Practices</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_security_group" "web" {
+  name_prefix = "web-sg"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS from internet"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "web-security-group"
+  }
+}</code></pre>
+        </div>
+
+        <h2>Section 5: Compute Security</h2>
+
+        <h3>5.1 EC2 Instance Security</h3>
+        <ul>
+          <li>✅ Disable unused services and ports</li>
+          <li>✅ Enable detailed monitoring</li>
+          <li>✅ Use IAM roles instead of access keys</li>
+          <li>✅ Enable EBS encryption</li>
+          <li>✅ Regular security patching</li>
+        </ul>
+
+        <h3>5.2 EBS Encryption by Default</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_ebs_encryption_by_default" "enable" {
+  enabled = true
+}
+
+resource "aws_ebs_default_kms_key" "main" {
+  key_id = aws_kms_key.ebs.arn
+}
+
+resource "aws_kms_key" "ebs" {
+  description             = "KMS key for EBS encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = {
+    Name = "ebs-encryption-key"
+  }
+}
+
+resource "aws_kms_alias" "ebs" {
+  name          = "alias/ebs-encryption"
+  target_key_id = aws_kms_key.ebs.key_id
+}</code></pre>
+        </div>
+
+        <h2>Section 6: Database Security</h2>
+
+        <h3>6.1 RDS Security</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_db_instance" "secure" {
+  identifier = "secure-database"
+  
+  engine         = "postgres"
+  engine_version = "14.9"
+  instance_class = "db.t3.micro"
+  
+  allocated_storage     = 20
+  max_allocated_storage = 100
+  storage_type          = "gp3"
+  storage_encrypted     = true
+  kms_key_id           = aws_kms_key.rds.arn
+  
+  db_name  = "securedb"
+  username = "dbadmin"
+  password = var.db_password
+  
+  backup_retention_period = 30
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+  
+  multi_az = true
+  
+  enabled_cloudwatch_logs_exports = ["postgresql"]
+  monitoring_interval             = 60
+  monitoring_role_arn            = aws_iam_role.rds_enhanced_monitoring.arn
+  
+  publicly_accessible = false
+  
+  vpc_security_group_ids = [aws_security_group.rds.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+  
+  deletion_protection = true
+  
+  tags = {
+    Environment = "production"
+    Compliance  = "CIS"
+  }
+}</code></pre>
+        </div>
+        <ul>
+          <li>✅ Enable RDS encryption at rest</li>
+          <li>✅ Enable RDS backup encryption</li>
+          <li>✅ Disable public accessibility</li>
+          <li>✅ Enable RDS logging</li>
+          <li>✅ Use SSL/TLS for connections</li>
+          <li>✅ Set backup retention to 30 days</li>
+          <li>✅ Enable Multi-AZ deployment</li>
+        </ul>
+
+        <h2>Automated Compliance Checking</h2>
+
+        <h3>AWS Config Rules</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_config_config_rule" "root_mfa_enabled" {
+  name = "root-mfa-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "ROOT_MFA_ENABLED"
+  }
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "s3_bucket_public_read_prohibited" {
+  name = "s3-bucket-public-read-prohibited"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+  }
+
+  depends_on = [aws_config_configuration_recorder.main]
+}</code></pre>
+        </div>
+
+        <h3>Security Hub Integration</h3>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_securityhub_account" "main" {}
+
+resource "aws_securityhub_standards_subscription" "cis" {
+  standards_arn = "arn:aws:securityhub:::ruleset/finding-format/aws-foundational-security-standard/v/1.0.0"
+  depends_on    = [aws_securityhub_account.main]
+}
+
+resource "aws_securityhub_standards_subscription" "aws_foundational" {
+  standards_arn = "arn:aws:securityhub:${data.aws_region.current.name}::standard/aws-foundational-security-standard/v/1.0.0"
+  depends_on    = [aws_securityhub_account.main]
+}</code></pre>
+        </div>
+
+        <h2>Compliance Monitoring Script</h2>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>#!/bin/bash
+
+# CIS Compliance Check Script
+echo "🔍 Running CIS Compliance Checks..."
+
+# Check 1: Root account MFA
+echo "Checking root account MFA..."
+root_mfa=$(aws iam get-account-summary --query 'SummaryMap.AccountMFAEnabled' --output text)
+if [ "$root_mfa" == "1" ]; then
+    echo "✅ Root MFA enabled"
+else
+    echo "❌ Root MFA not enabled"
+fi
+
+# Check 2: Password policy
+echo "Checking password policy..."
+min_length=$(aws iam get-account-password-policy --query 'PasswordPolicy.MinimumPasswordLength' --output text 2>/dev/null)
+if [ "$min_length" -ge "14" ]; then
+    echo "✅ Password policy compliant"
+else
+    echo "❌ Password policy needs update"
+fi
+
+# Check 3: CloudTrail enabled
+echo "Checking CloudTrail..."
+trails=$(aws cloudtrail describe-trails --query 'trailList[?IsMultiRegionTrail==`true`]' --output text)
+if [ -n "$trails" ]; then
+    echo "✅ Multi-region CloudTrail enabled"
+else
+    echo "❌ Multi-region CloudTrail not configured"
+fi
+
+# Check 4: Default VPCs
+echo "Checking for default VPCs..."
+default_vpcs=$(aws ec2 describe-vpcs --filters Name=isDefault,Values=true --query 'Vpcs[*].VpcId' --output text)
+if [ -z "$default_vpcs" ]; then
+    echo "✅ No default VPCs found"
+else
+    echo "❌ Default VPCs exist: $default_vpcs"
+fi
+
+echo "🏁 CIS compliance check completed"</code></pre>
+        </div>
+
+        <h2>Remediation Automation</h2>
+        <div class="code-container">
+          <button class="copy-btn" onclick="copyCode(this)">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <pre><code>resource "aws_lambda_function" "cis_remediation" {
+  filename         = "cis_remediation.zip"
+  function_name    = "cis-auto-remediation"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "index.handler"
+  runtime         = "python3.9"
+  timeout         = 300
+
+  environment {
+    variables = {
+      SNS_TOPIC = aws_sns_topic.security_alerts.arn
+    }
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "config_compliance" {
+  name        = "config-compliance-change"
+  description = "Trigger remediation on compliance changes"
+
+  event_pattern = jsonencode({
+    source      = ["aws.config"]
+    detail-type = ["Config Rules Compliance Change"]
+    detail = {
+      newEvaluationResult = {
+        complianceType = ["NON_COMPLIANT"]
+      }
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "lambda" {
+  rule      = aws_cloudwatch_event_rule.config_compliance.name
+  target_id = "TriggerRemediation"
+  arn       = aws_lambda_function.cis_remediation.arn
+}</code></pre>
+        </div>
+
+        <h2>CIS Compliance Checklist Summary</h2>
+        <h3>Identity and Access Management</h3>
+        <ul>
+          <li>✅ Root account security and MFA</li>
+          <li>✅ IAM password policy</li>
+          <li>✅ MFA for all users</li>
+          <li>✅ Access key rotation</li>
+          <li>✅ Unused credentials removal</li>
+        </ul>
+
+        <h3>Logging and Monitoring</h3>
+        <ul>
+          <li>✅ CloudTrail multi-region</li>
+          <li>✅ CloudTrail log encryption</li>
+          <li>✅ CloudWatch monitoring</li>
+          <li>✅ Security alerts and notifications</li>
+        </ul>
+
+        <h3>Storage and Data Protection</h3>
+        <ul>
+          <li>✅ S3 bucket security</li>
+          <li>✅ EBS encryption</li>
+          <li>✅ RDS encryption</li>
+          <li>✅ Data backup and retention</li>
+        </ul>
+
+        <h3>Network Security</h3>
+        <ul>
+          <li>✅ VPC security configuration</li>
+          <li>✅ Security group restrictions</li>
+          <li>✅ Network ACLs</li>
+          <li>✅ VPC Flow Logs</li>
+        </ul>
+
+        <h2>Conclusion</h2>
+        <p>Implementing CIS compliance is an ongoing process that requires continuous monitoring, regular audits, and
+          automated remediation. The checklist and automation scripts provided here will help you establish a strong
+          security foundation and maintain compliance over time.</p>
+
+        <p>Remember that compliance is not a one-time achievement but a continuous journey. Regular reviews, updates to
+          security policies, and staying current with the latest CIS benchmark updates are essential for maintaining a
+          secure AWS environment.</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+        <div class="footer-social">
+          <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a href="mailto:xnkazmi@gmail.com" class="social-link">
+            <i class="fas fa-envelope"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function copyCode(button) {
+      const codeBlock = button.nextElementSibling.querySelector('code');
+      const text = codeBlock.textContent;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        button.style.background = '#10b981';
+
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.style.background = '';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+
+</html>

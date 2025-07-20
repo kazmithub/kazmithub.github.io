@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS EKS Java Application Deployment - Ahsan Kazmi</title>
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html"><h2>Ahsan Kazmi</h2></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#experience" class="nav-link">Experience</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blog Post Content -->
+    <article class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Blogs
+                </a>
+                <h1 class="blog-post-title">AWS EKS Java Application Deployment</h1>
+                <div class="blog-post-meta">
+                    <span class="blog-date">Published by Ahsan Kazmi</span>
+                    <div class="blog-post-tags">
+                        <span class="blog-tag">AWS EKS</span>
+                        <span class="blog-tag">Kubernetes</span>
+                        <span class="blog-tag">Java</span>
+                        <span class="blog-tag">Docker</span>
+                        <span class="blog-tag">CI/CD</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <h2>Project Overview</h2>
+                <p>This comprehensive project demonstrates the complete deployment pipeline for Java applications on Amazon EKS (Elastic Kubernetes Service). The implementation showcases modern DevOps practices, containerization strategies, and cloud-native deployment patterns that I've refined through years of production experience.</p>
+
+                <div class="project-links">
+                    <a href="https://github.com/kazmithub/kazmithub-aws-eks-java-deployment" target="_blank" class="btn btn-primary">
+                        <i class="fab fa-github"></i> View Source Code
+                    </a>
+                </div>
+
+                <h2>Architecture Overview</h2>
+                <p>The project implements a robust, scalable architecture that follows AWS Well-Architected Framework principles:</p>
+                <ul>
+                    <li><strong>Container Orchestration:</strong> Amazon EKS for managed Kubernetes</li>
+                    <li><strong>Application Layer:</strong> Java Spring Boot microservices</li>
+                    <li><strong>CI/CD Pipeline:</strong> Automated build and deployment workflows</li>
+                    <li><strong>Infrastructure as Code:</strong> Terraform for reproducible infrastructure</li>
+                    <li><strong>Monitoring & Logging:</strong> CloudWatch integration for observability</li>
+                </ul>
+
+                <h2>Key Components</h2>
+                
+                <h3>1. EKS Cluster Configuration</h3>
+                <p>The EKS cluster is configured with best practices for production workloads:</p>
+                <pre><code>resource "aws_eks_cluster" "main" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.eks_cluster.arn
+  version  = var.kubernetes_version
+
+  vpc_config {
+    subnet_ids              = var.subnet_ids
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = var.public_access_cidrs
+  }
+
+  encryption_config {
+    provider {
+      key_arn = aws_kms_key.eks.arn
+    }
+    resources = ["secrets"]
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_policy,
+    aws_iam_role_policy_attachment.eks_service_policy,
+  ]
+}</code></pre>
+
+                <h3>2. Java Application Containerization</h3>
+                <p>The Java application is containerized using multi-stage Docker builds for optimal image size and security:</p>
+                <pre><code># Multi-stage Dockerfile for Java application
+FROM openjdk:17-jdk-slim as builder
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN ./mvnw clean package -DskipTests
+
+FROM openjdk:17-jre-slim
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
+
+                <h3>3. Kubernetes Deployment Manifests</h3>
+                <p>Production-ready Kubernetes manifests with proper resource management:</p>
+                <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-app
+  namespace: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: java-app
+  template:
+    metadata:
+      labels:
+        app: java-app
+    spec:
+      containers:
+      - name: java-app
+        image: your-registry/java-app:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5</code></pre>
+
+                <h2>CI/CD Pipeline Implementation</h2>
+                <p>The project includes a comprehensive CI/CD pipeline that automates the entire deployment process:</p>
+
+                <h3>Pipeline Stages</h3>
+                <ol>
+                    <li><strong>Source Code Checkout:</strong> Automated trigger on code commits</li>
+                    <li><strong>Build & Test:</strong> Maven build with unit and integration tests</li>
+                    <li><strong>Security Scanning:</strong> Container image vulnerability scanning</li>
+                    <li><strong>Image Build:</strong> Docker image creation and tagging</li>
+                    <li><strong>Registry Push:</strong> Secure push to Amazon ECR</li>
+                    <li><strong>Deployment:</strong> Rolling deployment to EKS cluster</li>
+                    <li><strong>Health Checks:</strong> Automated verification of deployment success</li>
+                </ol>
+
+                <h3>GitHub Actions Workflow</h3>
+                <pre><code>name: Deploy to EKS
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    - name: Build and push Docker image
+      run: |
+        aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+
+    - name: Deploy to EKS
+      run: |
+        aws eks update-kubeconfig --region us-west-2 --name $EKS_CLUSTER_NAME
+        kubectl set image deployment/java-app java-app=$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+        kubectl rollout status deployment/java-app</code></pre>
+
+                <h2>Security Best Practices</h2>
+                <p>The implementation incorporates multiple layers of security:</p>
+                <ul>
+                    <li><strong>IAM Roles:</strong> Least privilege access with service-specific roles</li>
+                    <li><strong>Network Security:</strong> VPC with private subnets and security groups</li>
+                    <li><strong>Secrets Management:</strong> AWS Secrets Manager integration</li>
+                    <li><strong>Image Scanning:</strong> Automated vulnerability scanning in CI/CD</li>
+                    <li><strong>Pod Security:</strong> Security contexts and network policies</li>
+                </ul>
+
+                <h2>Monitoring and Observability</h2>
+                <p>Comprehensive monitoring setup ensures production readiness:</p>
+                <ul>
+                    <li><strong>Application Metrics:</strong> Spring Boot Actuator endpoints</li>
+                    <li><strong>Infrastructure Monitoring:</strong> CloudWatch Container Insights</li>
+                    <li><strong>Log Aggregation:</strong> Centralized logging with Fluent Bit</li>
+                    <li><strong>Alerting:</strong> CloudWatch alarms for critical metrics</li>
+                </ul>
+
+                <h2>Scaling and Performance</h2>
+                <p>The deployment includes auto-scaling capabilities:</p>
+                <pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: java-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: java-app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80</code></pre>
+
+                <h2>Key Learnings and Benefits</h2>
+                <p>This project demonstrates several critical DevOps capabilities:</p>
+                <ul>
+                    <li><strong>Scalability:</strong> Automatic scaling based on demand</li>
+                    <li><strong>Reliability:</strong> High availability with multi-AZ deployment</li>
+                    <li><strong>Security:</strong> Defense-in-depth security approach</li>
+                    <li><strong>Efficiency:</strong> Automated deployment reduces manual errors</li>
+                    <li><strong>Observability:</strong> Comprehensive monitoring and logging</li>
+                </ul>
+
+                <h2>Getting Started</h2>
+                <p>To deploy this solution in your environment:</p>
+                <ol>
+                    <li>Clone the repository from GitHub</li>
+                    <li>Configure AWS credentials and region</li>
+                    <li>Update variables in terraform.tfvars</li>
+                    <li>Run terraform apply to create infrastructure</li>
+                    <li>Deploy the application using kubectl or CI/CD pipeline</li>
+                </ol>
+
+                <p>This project serves as a production-ready template for deploying Java applications on AWS EKS, incorporating industry best practices and lessons learned from real-world implementations.</p>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
