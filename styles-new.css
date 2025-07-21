@@ -20,29 +20,35 @@
     --warning-orange: #E67E22;
     
     /* Theme Colors - Light Mode (Default) */
-    --bg-primary: var(--pure-white);
-    --bg-secondary: var(--light-gray);
-    --text-primary: var(--charcoal);
-    --text-secondary: var(--soft-gray);
-    --border-color: var(--light-gray);
-    --card-bg: var(--pure-white);
-    --navbar-bg: rgba(255, 255, 255, 0.95);
-    --navbar-shadow: rgba(0, 0, 0, 0.1);
-    --hero-overlay: rgba(0, 0, 0, 0.1);
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --card-bg: #ffffff;
+    --navbar-bg: rgba(248, 250, 252, 0.95);
+    --navbar-shadow: rgba(0, 0, 0, 0.05);
+    --hero-overlay: rgba(0, 0, 0, 0.05);
 }
 
 /* Dark Mode Colors */
 [data-theme="dark"] {
     /* Theme Colors - Dark Mode */
-    --bg-primary: #121212;
-    --bg-secondary: #1E1E1E;
-    --text-primary: #E0E0E0;
-    --text-secondary: #A0A0A0;
-    --border-color: #333333;
-    --card-bg: #1E1E1E;
-    --navbar-bg: rgba(18, 18, 18, 0.95);
-    --navbar-shadow: rgba(0, 0, 0, 0.3);
-    --hero-overlay: rgba(0, 0, 0, 0.4);
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --card-bg: #1e293b;
+    --navbar-bg: rgba(15, 23, 42, 0.95);
+    --navbar-shadow: rgba(0, 0, 0, 0.4);
+    --hero-overlay: rgba(0, 0, 0, 0.5);
+    
+    /* Accent colors in dark mode */
+    --accent-blue: #38bdf8;
+    --accent-gold: #f59e0b;
+    --success-green: #10b981;
+    --warning-orange: #fb923c;
 }
 
 /* Reset and Base Styles */
@@ -338,14 +344,18 @@ section {
 .stat {
     text-align: center;
     padding: 2rem;
-    background: var(--pure-white);
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
 }
 
 .stat:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.3);
 }
 
 .stat h3 {
@@ -401,15 +411,19 @@ section {
 }
 
 .timeline-content {
-    background: var(--pure-white);
+    background: var(--card-bg);
     padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
 }
 
 .timeline-content:hover {
     transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.3);
 }
 
 .timeline-content h3 {
@@ -471,15 +485,19 @@ section {
 }
 
 .skill-category {
-    background: var(--pure-white);
+    background: var(--card-bg);
     padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
 }
 
 .skill-category:hover {
     transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.3);
 }
 
 .skill-category h3 {
@@ -537,12 +555,14 @@ section {
 
 /* Certifications */
 .certifications {
-    background: var(--pure-white);
+    background: var(--card-bg);
     padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     max-width: 600px;
     margin: 3rem auto 0;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
 }
 
 .certifications h3 {
@@ -1238,8 +1258,8 @@ body[data-transition*="-to-blogs"] section {
     border-radius: 3px;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(90deg, #27AE60, #F39C12);
-    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.2);
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
     transition: width 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
     width: 0; /* Start at 0 width */
 }
@@ -1518,7 +1538,8 @@ input:checked + .slider:before {
 }
 
 [data-theme="dark"] .footer {
-    background: #0a0a0a;
+    background: #0f172a;
+    border-top: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .stat,
@@ -1528,26 +1549,90 @@ input:checked + .slider:before {
 [data-theme="dark"] .blog-row,
 [data-theme="dark"] .contact-item {
     background: var(--card-bg);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
 }
 
 [data-theme="dark"] .blog-platform,
 [data-theme="dark"] .blog-tag,
 [data-theme="dark"] .blog-link,
 [data-theme="dark"] .cert-item {
-    background: var(--bg-secondary);
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .skill-bar {
-    background: var(--bg-secondary);
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .nav-link {
     color: var(--text-primary);
 }
 
+[data-theme="dark"] .nav-link:hover {
+    color: var(--accent-blue);
+}
+
+[data-theme="dark"] .nav-link::after {
+    background: var(--accent-blue);
+}
+
 [data-theme="dark"] .blog-title a {
     color: var(--text-primary);
+}
+
+[data-theme="dark"] .blog-title a:hover {
+    color: var(--accent-blue);
+}
+
+/* Enhanced dark mode card styling with glassmorphism */
+[data-theme="dark"] .skill-category,
+[data-theme="dark"] .timeline-content,
+[data-theme="dark"] .blog-row,
+[data-theme="dark"] .certifications,
+[data-theme="dark"] .contact-item {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced dark mode glow effects */
+[data-theme="dark"] .skill-category:hover,
+[data-theme="dark"] .timeline-content:hover,
+[data-theme="dark"] .blog-row:hover,
+[data-theme="dark"] .contact-item:hover {
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Dark mode skill progress bars - consistent color scheme */
+[data-theme="dark"] .skill-progress {
+    background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+}
+
+/* Remove these specific classes as we're using a consistent color for all skill levels
+[data-theme="dark"] .skill-progress.expert,
+[data-theme="dark"] .skill-progress.advanced,
+[data-theme="dark"] .skill-progress.intermediate {
+    background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+}
+*/
+}
+
+/* Dark mode timeline enhancements */
+[data-theme="dark"] .timeline::before {
+    background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+}
+
+[data-theme="dark"] .timeline-dot {
+    background: #38bdf8;
+    border: 4px solid var(--bg-primary);
+    box-shadow: 0 0 0 4px rgba(51, 65, 85, 0.6);
 }
 
 [data-theme="dark"] .section-title,
