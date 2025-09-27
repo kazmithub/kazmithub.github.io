@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why and How to Delete Default VPCs - Ahsan Kazmi</title>
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html"><h2>Ahsan Kazmi</h2></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#experience" class="nav-link">Experience</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blog Post Content -->
+    <article class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Blogs
+                </a>
+                <h1 class="blog-post-title">Why and How to Delete Default VPCs Across All AWS Regions</h1>
+                <div class="blog-post-meta">
+                    <span class="blog-date">Published by Ahsan Kazmi • November 8, 2024</span>
+                    <div class="blog-post-tags">
+                        <span class="blog-tag">AWS</span>
+                        <span class="blog-tag">VPC</span>
+                        <span class="blog-tag">Security</span>
+                        <span class="blog-tag">Best Practices</span>
+                        <span class="blog-tag">Automation</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <h2>Introduction</h2>
+                <p>Default VPCs in AWS are convenient for getting started quickly, but they pose significant security risks in production environments. Having worked with numerous organizations on cloud security implementations, I've seen how default VPCs can become security vulnerabilities and compliance issues. This guide explains why you should remove them and provides an automated solution to delete default VPCs across all AWS regions.</p>
+
+                <h2>Why Default VPCs Are a Security Risk</h2>
+
+                <h3>1. Overly Permissive Configuration</h3>
+                <p>Default VPCs come with configurations that prioritize convenience over security:</p>
+                <ul>
+                    <li><strong>Public subnets by default:</strong> All subnets have public IP assignment enabled</li>
+                    <li><strong>Internet Gateway attached:</strong> Direct internet access without proper controls</li>
+                    <li><strong>Default security groups:</strong> Often too permissive for production workloads</li>
+                    <li><strong>Predictable CIDR blocks:</strong> Using standard 172.31.0.0/16 makes them easy targets</li>
+                </ul>
+
+                <h3>2. Compliance and Governance Issues</h3>
+                <p>From my experience implementing CIS compliance and security frameworks:</p>
+                <ul>
+                    <li><strong>CIS Benchmark violations:</strong> Default VPCs fail multiple CIS controls</li>
+                    <li><strong>Audit findings:</strong> Security audits often flag default VPCs as risks</li>
+                    <li><strong>Governance gaps:</strong> Default VPCs bypass infrastructure-as-code processes</li>
+                    <li><strong>Shadow IT risks:</strong> Teams might accidentally deploy resources in default VPCs</li>
+                </ul>
+
+                <h3>3. Operational Challenges</h3>
+                <ul>
+                    <li><strong>Inconsistent networking:</strong> Different regions have different default configurations</li>
+                    <li><strong>Monitoring gaps:</strong> Default VPCs often lack proper logging and monitoring</li>
+                    <li><strong>Cost management:</strong> Harder to track and allocate costs for default VPC resources</li>
+                </ul>
+
+                <h2>Real-World Impact</h2>
+                <p>In my consulting work, I've encountered several scenarios where default VPCs caused issues:</p>
+
+                <h3>Healthcare Platform Incident</h3>
+                <p>During a HIPAA compliance audit for a healthcare client, we discovered that a development team had accidentally deployed a database containing PHI in a default VPC. The database was accessible from the internet due to the default security group configuration. This could have resulted in significant compliance violations and fines.</p>
+
+                <h3>E-commerce Security Breach</h3>
+                <p>An e-commerce startup experienced a security incident when an intern deployed a test application in the default VPC with default security groups. The application had vulnerabilities that were exploited because of the overly permissive network configuration.</p>
+
+                <h2>The Solution: Automated Default VPC Deletion</h2>
+                <p>Here's a comprehensive script that safely deletes default VPCs across all AWS regions:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code>#!/bin/bash
+
+# Default VPC Deletion Script
+# Author: Ahsan Kazmi
+# Purpose: Remove default VPCs from all AWS regions for security compliance
+
+set -e
+
+echo "🚨 AWS Default VPC Cleanup Script"
+echo "=================================="
+echo "⚠️  WARNING: This will delete default VPCs in ALL regions"
+echo "⚠️  Ensure no resources are running in default VPCs before proceeding"
+echo ""
+
+# Confirmation prompt
+read -p "Are you sure you want to continue? (yes/no): " confirm
+if [[ $confirm != "yes" ]]; then
+    echo "❌ Operation cancelled"
+    exit 1
+fi
+
+# Initialize counters
+deleted_count=0
+skipped_count=0
+error_count=0
+
+# Loop through all AWS regions
+for region in $(aws ec2 describe-regions \
+    --query "Regions[*].RegionName" \
+    --output text); do
+    
+    echo ""
+    echo "🌍 Processing Region: $region"
+    echo "----------------------------------------"
+    
+    # Find default VPC in current region
+    vpc_id=$(aws ec2 describe-vpcs \
+        --region "$region" \
+        --filters Name=isDefault,Values=true \
+        --query "Vpcs[0].VpcId" \
+        --output text 2>/dev/null)
+    
+    if [[ "$vpc_id" == "None" || "$vpc_id" == "" ]]; then
+        echo "  ℹ️  No default VPC found in $region"
+        ((skipped_count++))
+        continue
+    fi
+    
+    echo "  🎯 Found default VPC: $vpc_id"
+    
+    # Check for running instances
+    instances=$(aws ec2 describe-instances \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id Name=instance-state-name,Values=running \
+        --query "Reservations[*].Instances[*].InstanceId" \
+        --output text 2>/dev/null)
+    
+    if [[ -n "$instances" && "$instances" != "" ]]; then
+        echo "  ⚠️  WARNING: Running instances found in default VPC: $instances"
+        echo "  ❌ Skipping deletion to prevent service disruption"
+        ((error_count++))
+        continue
+    fi
+    
+    # Start deletion process
+    echo "  🗑️  Starting deletion process..."
+    
+    # 1. Detach and delete Internet Gateways
+    echo "    • Removing Internet Gateways..."
+    for igw in $(aws ec2 describe-internet-gateways \
+        --region "$region" \
+        --filters Name=attachment.vpc-id,Values=$vpc_id \
+        --query "InternetGateways[*].InternetGatewayId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$igw" && "$igw" != "" ]]; then
+            echo "      - Detaching IGW: $igw"
+            aws ec2 detach-internet-gateway \
+                --internet-gateway-id "$igw" \
+                --vpc-id "$vpc_id" \
+                --region "$region" 2>/dev/null || true
+            
+            echo "      - Deleting IGW: $igw"
+            aws ec2 delete-internet-gateway \
+                --internet-gateway-id "$igw" \
+                --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 2. Delete Subnets
+    echo "    • Removing Subnets..."
+    for subnet in $(aws ec2 describe-subnets \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "Subnets[*].SubnetId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$subnet" && "$subnet" != "" ]]; then
+            echo "      - Deleting Subnet: $subnet"
+            aws ec2 delete-subnet \
+                --subnet-id "$subnet" \
+                --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 3. Delete Route Tables (non-main)
+    echo "    • Removing Route Tables..."
+    for rt in $(aws ec2 describe-route-tables \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "RouteTables[?Associations[?Main!=\`true\`] || length(Associations)==\`0\`].RouteTableId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$rt" && "$rt" != "" ]]; then
+            echo "      - Deleting Route Table: $rt"
+            aws ec2 delete-route-table \
+                --route-table-id "$rt" \
+                --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 4. Delete Security Groups (non-default)
+    echo "    • Removing Security Groups..."
+    for sg in $(aws ec2 describe-security-groups \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "SecurityGroups[?GroupName!='default'].GroupId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$sg" && "$sg" != "" ]]; then
+            echo "      - Deleting Security Group: $sg"
+            aws ec2 delete-security-group \
+                --group-id "$sg" \
+                --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 5. Delete Network ACLs (non-default)
+    echo "    • Removing Network ACLs..."
+    for acl in $(aws ec2 describe-network-acls \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "NetworkAcls[?IsDefault==\`false\`].NetworkAclId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$acl" && "$acl" != "" ]]; then
+            echo "      - Deleting Network ACL: $acl"
+            aws ec2 delete-network-acl \
+                --network-acl-id "$acl" \
+                --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 6. Finally, delete the VPC
+    echo "    • Deleting VPC: $vpc_id"
+    if aws ec2 delete-vpc \
+        --vpc-id "$vpc_id" \
+        --region "$region" 2>/dev/null; then
+        echo "  ✅ Successfully deleted VPC: $vpc_id"
+        ((deleted_count++))
+    else
+        echo "  ❌ Failed to delete VPC: $vpc_id"
+        ((error_count++))
+    fi
+done
+
+# Summary
+echo ""
+echo "📊 DELETION SUMMARY"
+echo "==================="
+echo "✅ VPCs deleted: $deleted_count"
+echo "⏭️  Regions skipped: $skipped_count"
+echo "❌ Errors encountered: $error_count"
+echo ""
+
+if [[ $deleted_count -gt 0 ]]; then
+    echo "🎉 Default VPC cleanup completed successfully!"
+    echo "🔒 Your AWS account is now more secure"
+else
+    echo "ℹ️  No default VPCs were found or deleted"
+fi
+
+echo ""
+echo "📝 Next Steps:"
+echo "1. Verify no resources were accidentally deleted"
+echo "2. Update your infrastructure-as-code templates"
+echo "3. Implement VPC creation policies to prevent default VPC usage"
+echo "4. Set up monitoring for new default VPC creation"</code></pre>
+                </div>
+
+                <h2>Enhanced Security Script with Logging</h2>
+                <p>For production environments, here's an enhanced version with comprehensive logging:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code>#!/bin/bash
+
+# Enhanced Default VPC Deletion Script with Logging
+# Author: Ahsan Kazmi
+
+set -e
+
+# Configuration
+LOG_FILE="/tmp/vpc-deletion-$(date +%Y%m%d-%H%M%S).log"
+SNS_TOPIC_ARN="${SNS_TOPIC_ARN:-}"  # Set this environment variable
+DRY_RUN="${DRY_RUN:-false}"
+
+# Logging function
+log() {
+    local level=$1
+    shift
+    local message="$@"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $message" | tee -a "$LOG_FILE"
+}
+
+# Send notification
+send_notification() {
+    local subject="$1"
+    local message="$2"
+    
+    if [[ -n "$SNS_TOPIC_ARN" ]]; then
+        aws sns publish \
+            --topic-arn "$SNS_TOPIC_ARN" \
+            --subject "$subject" \
+            --message "$message" 2>/dev/null || true
+    fi
+}
+
+log "INFO" "Starting Default VPC Deletion Process"
+log "INFO" "Log file: $LOG_FILE"
+log "INFO" "Dry run mode: $DRY_RUN"
+
+# Pre-flight checks
+log "INFO" "Performing pre-flight checks..."
+
+# Check AWS CLI configuration
+if ! aws sts get-caller-identity &>/dev/null; then
+    log "ERROR" "AWS CLI not configured or credentials invalid"
+    exit 1
+fi
+
+# Get account information
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+log "INFO" "Operating on AWS Account: $ACCOUNT_ID"
+
+# Initialize tracking
+declare -A region_results
+total_regions=0
+successful_deletions=0
+failed_deletions=0
+
+# Process each region
+for region in $(aws ec2 describe-regions --query "Regions[*].RegionName" --output text); do
+    ((total_regions++))
+    log "INFO" "Processing region: $region"
+    
+    # Find default VPC
+    vpc_id=$(aws ec2 describe-vpcs \
+        --region "$region" \
+        --filters Name=isDefault,Values=true \
+        --query "Vpcs[0].VpcId" \
+        --output text 2>/dev/null)
+    
+    if [[ "$vpc_id" == "None" || -z "$vpc_id" ]]; then
+        log "INFO" "No default VPC in region $region"
+        region_results[$region]="NO_DEFAULT_VPC"
+        continue
+    fi
+    
+    log "INFO" "Found default VPC $vpc_id in region $region"
+    
+    # Safety check: Look for resources
+    resource_check=$(aws ec2 describe-instances \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "length(Reservations[*].Instances[*])" \
+        --output text 2>/dev/null)
+    
+    if [[ "$resource_check" != "0" ]]; then
+        log "WARN" "Found $resource_check instances in default VPC $vpc_id in region $region"
+        region_results[$region]="HAS_RESOURCES"
+        ((failed_deletions++))
+        continue
+    fi
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log "INFO" "DRY RUN: Would delete VPC $vpc_id in region $region"
+        region_results[$region]="DRY_RUN"
+        continue
+    fi
+    
+    # Perform deletion
+    if delete_default_vpc "$region" "$vpc_id"; then
+        log "INFO" "Successfully deleted VPC $vpc_id in region $region"
+        region_results[$region]="DELETED"
+        ((successful_deletions++))
+    else
+        log "ERROR" "Failed to delete VPC $vpc_id in region $region"
+        region_results[$region]="FAILED"
+        ((failed_deletions++))
+    fi
+done
+
+# Generate summary report
+generate_summary_report() {
+    local report_file="/tmp/vpc-deletion-report-$(date +%Y%m%d-%H%M%S).json"
+    
+    cat > "$report_file" << EOF
+{
+    "account_id": "$ACCOUNT_ID",
+    "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "total_regions": $total_regions,
+    "successful_deletions": $successful_deletions,
+    "failed_deletions": $failed_deletions,
+    "dry_run": $DRY_RUN,
+    "results": {
+EOF
+
+    local first=true
+    for region in "${!region_results[@]}"; do
+        if [[ "$first" == "true" ]]; then
+            first=false
+        else
+            echo "," >> "$report_file"
+        fi
+        echo "        \"$region\": \"${region_results[$region]}\"" >> "$report_file"
+    done
+
+    cat >> "$report_file" << EOF
+    }
+}
+EOF
+
+    log "INFO" "Summary report generated: $report_file"
+    echo "$report_file"
+}
+
+# Function to delete default VPC
+delete_default_vpc() {
+    local region=$1
+    local vpc_id=$2
+    
+    log "INFO" "Starting deletion of VPC $vpc_id in region $region"
+    
+    # Delete in correct order to avoid dependency issues
+    
+    # 1. Internet Gateways
+    for igw in $(aws ec2 describe-internet-gateways \
+        --region "$region" \
+        --filters Name=attachment.vpc-id,Values=$vpc_id \
+        --query "InternetGateways[*].InternetGatewayId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$igw" ]]; then
+            log "INFO" "Detaching and deleting IGW $igw"
+            aws ec2 detach-internet-gateway --internet-gateway-id "$igw" --vpc-id "$vpc_id" --region "$region" 2>/dev/null || true
+            aws ec2 delete-internet-gateway --internet-gateway-id "$igw" --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 2. Subnets
+    for subnet in $(aws ec2 describe-subnets \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "Subnets[*].SubnetId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$subnet" ]]; then
+            log "INFO" "Deleting subnet $subnet"
+            aws ec2 delete-subnet --subnet-id "$subnet" --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 3. Route Tables (non-main)
+    for rt in $(aws ec2 describe-route-tables \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "RouteTables[?Associations[?Main!=\`true\`] || length(Associations)==\`0\`].RouteTableId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$rt" ]]; then
+            log "INFO" "Deleting route table $rt"
+            aws ec2 delete-route-table --route-table-id "$rt" --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 4. Security Groups (non-default)
+    for sg in $(aws ec2 describe-security-groups \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "SecurityGroups[?GroupName!='default'].GroupId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$sg" ]]; then
+            log "INFO" "Deleting security group $sg"
+            aws ec2 delete-security-group --group-id "$sg" --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 5. Network ACLs (non-default)
+    for acl in $(aws ec2 describe-network-acls \
+        --region "$region" \
+        --filters Name=vpc-id,Values=$vpc_id \
+        --query "NetworkAcls[?IsDefault==\`false\`].NetworkAclId" \
+        --output text 2>/dev/null); do
+        
+        if [[ -n "$acl" ]]; then
+            log "INFO" "Deleting network ACL $acl"
+            aws ec2 delete-network-acl --network-acl-id "$acl" --region "$region" 2>/dev/null || true
+        fi
+    done
+    
+    # 6. Finally delete the VPC
+    log "INFO" "Deleting VPC $vpc_id"
+    if aws ec2 delete-vpc --vpc-id "$vpc_id" --region "$region" 2>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Generate and send final report
+report_file=$(generate_summary_report)
+log "INFO" "Process completed. Successful: $successful_deletions, Failed: $failed_deletions"
+
+# Send notification if configured
+if [[ -n "$SNS_TOPIC_ARN" ]]; then
+    send_notification "Default VPC Deletion Complete" "$(cat "$report_file")"
+fi
+
+# Exit with appropriate code
+if [[ $failed_deletions -gt 0 ]]; then
+    exit 1
+else
+    exit 0
+fi</code></pre>
+                </div>
+
+                <h2>Terraform Prevention Policy</h2>
+                <p>To prevent default VPCs from being created in the future, implement this Service Control Policy:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PreventDefaultVPCCreation",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateDefaultVpc"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalServiceName": [
+            "ec2.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PreventDefaultVPCModification",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:ModifyVpcAttribute"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:IsDefaultVpc": "true"
+        }
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <h2>Monitoring and Alerting</h2>
+                <p>Set up CloudWatch Events to monitor for default VPC creation:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code>resource "aws_cloudwatch_event_rule" "default_vpc_created" {
+  name        = "default-vpc-creation-alert"
+  description = "Alert when default VPC is created"
+
+  event_pattern = jsonencode({
+    source      = ["aws.ec2"]
+    detail-type = ["AWS API Call via CloudTrail"]
+    detail = {
+      eventSource = ["ec2.amazonaws.com"]
+      eventName   = ["CreateDefaultVpc"]
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "sns" {
+  rule      = aws_cloudwatch_event_rule.default_vpc_created.name
+  target_id = "SendToSNS"
+  arn       = aws_sns_topic.security_alerts.arn
+}
+
+resource "aws_lambda_function" "auto_delete_default_vpc" {
+  filename         = "auto_delete_default_vpc.zip"
+  function_name    = "auto-delete-default-vpc"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "index.handler"
+  runtime         = "python3.9"
+  timeout         = 300
+
+  environment {
+    variables = {
+      SNS_TOPIC = aws_sns_topic.security_alerts.arn
+    }
+  }
+}</code></pre>
+                </div>
+
+                <h2>Best Practices After Deletion</h2>
+
+                <h3>1. Infrastructure as Code</h3>
+                <p>Always create VPCs using Infrastructure as Code tools:</p>
+                <ul>
+                    <li>Use Terraform, CloudFormation, or CDK</li>
+                    <li>Define explicit CIDR blocks and security configurations</li>
+                    <li>Implement proper tagging and naming conventions</li>
+                    <li>Version control all infrastructure definitions</li>
+                </ul>
+
+                <h3>2. Security by Design</h3>
+                <ul>
+                    <li>Create private subnets by default</li>
+                    <li>Use NAT Gateways for outbound internet access</li>
+                    <li>Implement least-privilege security groups</li>
+                    <li>Enable VPC Flow Logs for monitoring</li>
+                </ul>
+
+                <h3>3. Governance and Compliance</h3>
+                <ul>
+                    <li>Implement Service Control Policies to prevent default VPC creation</li>
+                    <li>Set up automated compliance checking</li>
+                    <li>Regular security audits and reviews</li>
+                    <li>Document network architecture and security controls</li>
+                </ul>
+
+                <h2>Troubleshooting Common Issues</h2>
+
+                <h3>VPC Deletion Fails</h3>
+                <p>If the script fails to delete a VPC, common causes include:</p>
+                <ul>
+                    <li><strong>Hidden resources:</strong> ENIs, Lambda functions, or RDS instances</li>
+                    <li><strong>VPC Peering connections:</strong> Must be deleted first</li>
+                    <li><strong>VPN connections:</strong> Disconnect before deletion</li>
+                    <li><strong>Elastic IPs:</strong> Release associated Elastic IPs</li>
+                </ul>
+
+                <h3>Manual Cleanup Commands</h3>
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <pre><code># Find all ENIs in a VPC
+aws ec2 describe-network-interfaces \
+    --filters Name=vpc-id,Values=vpc-12345678 \
+    --query 'NetworkInterfaces[*].[NetworkInterfaceId,Description,Status]' \
+    --output table
+
+# Find VPC Peering connections
+aws ec2 describe-vpc-peering-connections \
+    --filters Name=requester-vpc-info.vpc-id,Values=vpc-12345678 \
+    --query 'VpcPeeringConnections[*].[VpcPeeringConnectionId,Status.Code]' \
+    --output table
+
+# Find NAT Gateways
+aws ec2 describe-nat-gateways \
+    --filter Name=vpc-id,Values=vpc-12345678 \
+    --query 'NatGateways[*].[NatGatewayId,State]' \
+    --output table</code></pre>
+                </div>
+
+                <h2>Conclusion</h2>
+                <p>Removing default VPCs is a critical security hardening step that should be part of every AWS account setup process. The automated script provided here safely removes default VPCs while providing comprehensive logging and safety checks.</p>
+
+                <p>Key takeaways:</p>
+                <ul>
+                    <li><strong>Security First:</strong> Default VPCs pose unnecessary security risks</li>
+                    <li><strong>Automate Safely:</strong> Use scripts with proper error handling and logging</li>
+                    <li><strong>Prevent Recreation:</strong> Implement policies to prevent future default VPC creation</li>
+                    <li><strong>Monitor Continuously:</strong> Set up alerts for any new default VPC creation</li>
+                </ul>
+
+                <p>Remember, security is not a one-time task but an ongoing process. Regular audits, automated compliance checking, and proactive monitoring are essential for maintaining a secure AWS environment.</p>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
