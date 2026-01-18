@@ -84,95 +84,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 1000); // Increased from 500ms to 1000ms
                 }
                 
-                // Add MAXIMUM OVERDRIVE transition effects (110% intensity)
+                // Add subtle transition effects
                 
-                // Create multiple visual effects
-                const ripple = document.createElement('div');
-                ripple.classList.add('ripple-effect');
-                document.body.appendChild(ripple);
+                // Create simple fade effect
+                const fade = document.createElement('div');
+                fade.classList.add('fade-effect');
+                document.body.appendChild(fade);
                 
-                const shockwave = document.createElement('div');
-                shockwave.classList.add('shockwave');
-                document.body.appendChild(shockwave);
-                
-                // Create particle explosion effect
-                const particleContainer = document.createElement('div');
-                particleContainer.classList.add('particle-explosion');
-                document.body.appendChild(particleContainer);
-                
-                // Generate particles - 10% more particles (55 instead of 50)
-                for (let i = 0; i < 55; i++) {
-                    const particle = document.createElement('div');
-                    particle.classList.add('particle');
-                    
-                    // Random color with increased saturation
-                    const colors = [
-                        'rgba(74, 144, 226, 0.9)', // Brighter blue
-                        'rgba(243, 156, 18, 0.9)', // Brighter orange
-                        'rgba(39, 174, 96, 0.9)', // Brighter green
-                        'rgba(231, 76, 60, 0.9)', // Brighter red
-                        'rgba(155, 89, 182, 0.9)'  // Added purple for more variety
-                    ];
-                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    // Random size - 10% larger
-                    const size = Math.random() * 16.5 + 5.5; // Increased from 15+5
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    
-                    // Random direction - 10% further distance
-                    const angle = Math.random() * Math.PI * 2;
-                    const distance = Math.random() * 550 + 110; // Increased from 500+100
-                    const tx = Math.cos(angle) * distance;
-                    const ty = Math.sin(angle) * distance;
-                    
-                    particle.style.setProperty('--tx', `${tx}px`);
-                    particle.style.setProperty('--ty', `${ty}px`);
-                    
-                    // Random delay
-                    particle.style.animationDelay = `${Math.random() * 0.2}s`;
-                    
-                    particleContainer.appendChild(particle);
-                }
-                
-                // Add dramatic flash effect to the body during transition
+                // Add subtle flash effect to the body during transition
                 document.body.classList.add('page-transition');
                 
-                // Add extreme color shift to all sections
+                // Add gentle transition to all sections
                 document.querySelectorAll('section').forEach(section => {
-                    section.style.transition = 'all 3.3s cubic-bezier(0.04, 2.2, 0.1, 1)'; // 10% more extreme
+                    section.style.transition = 'all 0.8s ease-in-out';
                 });
                 
-                // Create extreme text distortion effect - 10% more extreme
-                document.querySelectorAll('h1, h2, h3, p, a, span').forEach(text => {
-                    text.style.transition = 'all 2.75s cubic-bezier(0.09, 1.65, 0.2, 1)'; // 10% more extreme
-                    text.style.filter = 'blur(16.5px) brightness(1.65) contrast(1.32)'; // 10% more extreme
-                    text.style.transform = 'scale(0.88) skewX(-11deg)'; // 10% more extreme
-                    text.style.opacity = '0.45'; // 10% more extreme
-                    text.style.textShadow = '0 0 22px rgba(74, 144, 226, 0.9)'; // 10% more extreme
+                // Create subtle text transition effect
+                document.querySelectorAll('h1, h2, h3').forEach(text => {
+                    text.style.transition = 'all 0.7s ease-out';
+                    text.style.filter = 'blur(3px)';
+                    text.style.opacity = '0.8';
                     
                     setTimeout(() => {
-                        text.style.filter = 'blur(0) brightness(1) contrast(1)';
-                        text.style.transform = 'scale(1) skewX(0)';
+                        text.style.filter = 'blur(0)';
                         text.style.opacity = '1';
-                        text.style.textShadow = 'none';
-                    }, 1650); // 10% longer
+                    }, 500);
                 });
                 
-                // Add extreme 3D rotation to the entire page - 10% more extreme
-                document.body.style.transition = 'transform 2.75s cubic-bezier(0.09, 1.98, 0.2, 1)'; // 10% more extreme
+                // Add subtle 3D effect to the page
+                document.body.style.transition = 'transform 0.8s ease-out';
                 document.body.style.transformStyle = 'preserve-3d';
-                document.body.style.perspective = '2750px'; // 10% more extreme
-                document.body.style.transform = 'rotateX(8.8deg) rotateY(5.5deg) scale(0.935)'; // 10% more extreme
-                
-                // Add a zoom effect to the viewport
-                document.documentElement.style.transition = 'transform 2.75s cubic-bezier(0.09, 1.98, 0.2, 1)';
-                document.documentElement.style.transform = 'scale(1.05)'; // Added zoom effect
+                document.body.style.perspective = '1000px';
+                document.body.style.transform = 'rotateX(2deg) scale(0.98)';
                 
                 setTimeout(() => {
-                    document.body.style.transform = 'rotateX(0) rotateY(0) scale(1)';
-                    document.documentElement.style.transform = 'scale(1)';
-                }, 1650); // 10% longer
+                    document.body.style.transform = 'rotateX(0) scale(1)';
+                }, 800);
                 
                 // Smooth scroll to target with a slight delay
                 setTimeout(() => {
@@ -197,10 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Remove effects after animation completes
                 setTimeout(() => {
                     document.body.classList.remove('page-transition');
-                    if (ripple.parentNode) ripple.remove();
-                    if (shockwave.parentNode) shockwave.remove();
-                    if (particleContainer.parentNode) particleContainer.remove();
-                }, 3300); // 10% longer
+                    if (fade.parentNode) fade.remove();
+                }, 1200);
             }
         });
     });
