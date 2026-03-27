@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS IAM Least Privilege: A Practical Guide - Ahsan Kazmi</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="script-fix.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><h2>Ahsan Kazmi</h2></div>
+            <ul class="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#services" class="nav-link">Services</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#timeline" class="nav-link">Timeline</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"><i class="fas fa-sun"></i><i class="fas fa-moon"></i></div>
+                </label>
+            </div>
+            <div class="hamburger"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
+        </div>
+    </nav>
+
+    <section class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link"><i class="fas fa-arrow-left"></i> Back to Blogs</a>
+                <h1 class="blog-post-title">AWS IAM Least Privilege: A Practical Guide</h1>
+                <div class="blog-meta">
+                    <span class="blog-platform">AWS Security</span>
+                    <span class="blog-date">October 12, 2023</span>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <p>If there's one security principle that could prevent 80% of cloud security incidents, it's least privilege. In my years of consulting, I've seen IAM policies that grant <code>*:*</code> to production services, shared root credentials across teams, and users with AdministratorAccess "just in case." This guide is my battle-tested approach to implementing least privilege IAM in AWS.</p>
+
+                <h2>Common IAM Anti-Patterns</h2>
+                <p>Before we talk about what to do, let's cover what I see go wrong most often:</p>
+                <ul>
+                    <li><strong>Wildcard everything:</strong> <code>"Action": "*", "Resource": "*"</code> on production roles</li>
+                    <li><strong>Shared IAM users:</strong> Multiple people using the same access keys</li>
+                    <li><strong>Never rotating keys:</strong> Access keys that haven't been rotated in years</li>
+                    <li><strong>No MFA:</strong> Console access without multi-factor authentication</li>
+                    <li><strong>Over-permissioned CI/CD:</strong> Deployment pipelines with admin access</li>
+                </ul>
+
+                <h2>Starting with IAM Access Analyzer</h2>
+                <p>IAM Access Analyzer is your best friend for right-sizing policies. It analyzes CloudTrail logs to determine which permissions are actually used:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Generate a policy based on actual usage (last 90 days)
+aws accessanalyzer generate-policy \
+  --policy-generation-details '{
+    "principalArn": "arn:aws:iam::123456789012:role/my-app-role"
+  }' \
+  --cloud-trail-details '{
+    "trails": [{
+      "cloudTrailArn": "arn:aws:cloudtrail:us-east-1:123456789012:trail/my-trail",
+      "regions": ["us-east-1"],
+      "allRegions": false
+    }],
+    "startTime": "2023-07-01T00:00:00Z",
+    "endTime": "2023-10-01T00:00:00Z"
+  }'</code></pre>
+                </div>
+
+                <h2>Writing Fine-Grained IAM Policies</h2>
+                <p>Here's a real example from a client project. Instead of granting broad S3 access, we scoped it down to exactly what the application needs:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadAppConfig",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": "arn:aws:s3:::myapp-config/production/*"
+    },
+    {
+      "Sid": "WriteUserUploads",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::myapp-uploads/${aws:PrincipalTag/team}/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-server-side-encryption": "aws:kms"
+        }
+      }
+    },
+    {
+      "Sid": "ListBucketContents",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": [
+        "arn:aws:s3:::myapp-config",
+        "arn:aws:s3:::myapp-uploads"
+      ],
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["production/*", "${aws:PrincipalTag/team}/*"]
+        }
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <h2>Service Control Policies (SCPs)</h2>
+                <p>SCPs are organizational guardrails that prevent even admin users from doing certain things. Here's my standard baseline SCP:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyRegionsOutsideAllowed",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["us-east-1", "us-west-2", "eu-west-1"]
+        },
+        "ForAnyValue:StringNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/OrganizationAdmin"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyRootAccount",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "aws:PrincipalArn": "arn:aws:iam::*:root"
+        }
+      }
+    },
+    {
+      "Sid": "RequireIMDSv2",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {
+        "StringNotEquals": {
+          "ec2:MetadataHttpTokens": "required"
+        }
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <h2>Permission Boundaries</h2>
+                <p>Permission boundaries are crucial for delegated administration. They let you give a team the ability to create IAM roles without the risk of privilege escalation:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Terraform: Create a permission boundary
+resource "aws_iam_policy" "developer_boundary" {
+  name = "DeveloperPermissionBoundary"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*",
+          "dynamodb:*",
+          "lambda:*",
+          "logs:*",
+          "sqs:*",
+          "sns:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Deny"
+        Action = [
+          "iam:CreateUser",
+          "iam:CreateRole",
+          "organizations:*",
+          "account:*"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Developers can only create roles within this boundary
+resource "aws_iam_policy" "developer_role_creation" {
+  name = "DeveloperRoleCreation"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "iam:CreateRole"
+      Resource = "*"
+      Condition = {
+        StringEquals = {
+          "iam:PermissionsBoundary" = aws_iam_policy.developer_boundary.arn
+        }
+      }
+    }]
+  })
+}</code></pre>
+                </div>
+
+                <h2>IAM Roles vs Users</h2>
+                <p>My general rules:</p>
+                <ul>
+                    <li><strong>Use IAM roles</strong> for everything: EC2 instances, Lambda functions, ECS tasks, CI/CD pipelines</li>
+                    <li><strong>Use IAM Identity Center (SSO)</strong> for human access to the console</li>
+                    <li><strong>Avoid IAM users</strong> wherever possible. If you must create them, enforce MFA and key rotation</li>
+                    <li><strong>Never use root credentials</strong> for anything. Lock them away with MFA and a hardware token.</li>
+                </ul>
+
+                <h2>Cross-Account Access</h2>
+                <p>For multi-account architectures (which I strongly recommend), use role assumption:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># In the target account - trust the source account's role
+resource "aws_iam_role" "cross_account" {
+  name = "CrossAccountDeployRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::SOURCE_ACCOUNT_ID:role/cicd-pipeline"
+      }
+      Action = "sts:AssumeRole"
+      Condition = {
+        StringEquals = {
+          "sts:ExternalId" = "unique-external-id-here"
+        }
+      }
+    }]
+  })
+}</code></pre>
+                </div>
+
+                <h2>Auditing IAM with CloudTrail</h2>
+                <p>Regular auditing is essential. Here are the queries I run monthly for clients:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Find unused IAM users (no login in 90 days)
+aws iam generate-credential-report
+aws iam get-credential-report --output text --query Content | \
+  base64 --decode | \
+  awk -F, '$5 != "N/A" && $5 < "'$(date -d '-90 days' +%Y-%m-%d)'" {print $1, $5}'
+
+# Find overly permissive policies
+aws iam list-policies --scope Local --query 'Policies[*].Arn' --output text | \
+  while read arn; do
+    version=$(aws iam get-policy --policy-arn $arn --query 'Policy.DefaultVersionId' --output text)
+    aws iam get-policy-version --policy-arn $arn --version-id $version \
+      --query 'PolicyVersion.Document' --output json | \
+      grep -l '"Action": "\*"' && echo "WILDCARD FOUND: $arn"
+  done
+
+# List all access keys and their age
+aws iam list-users --query 'Users[*].UserName' --output text | \
+  while read user; do
+    aws iam list-access-keys --user-name $user \
+      --query 'AccessKeyMetadata[*].[UserName,AccessKeyId,CreateDate,Status]' \
+      --output table
+  done</code></pre>
+                </div>
+
+                <h2>Real-World Impact</h2>
+                <p>During a compliance audit for a fintech client, we discovered that a single IAM user had <code>AdministratorAccess</code> and its access keys were embedded in a public GitHub repository. The keys had been exposed for 3 weeks. Fortunately, the account had SCPs that limited the blast radius. Without those guardrails, the entire AWS account could have been compromised.</p>
+
+                <p>This incident reinforced three things:</p>
+                <ul>
+                    <li>SCPs are your safety net when everything else fails</li>
+                    <li>Never use long-lived credentials when short-lived alternatives exist</li>
+                    <li>Automated secret scanning in CI/CD is not optional</li>
+                </ul>
+
+                <h2>Conclusion</h2>
+                <p>IAM least privilege is a journey, not a destination. Start with these steps:</p>
+                <ol>
+                    <li>Enable IAM Access Analyzer today</li>
+                    <li>Implement SCPs as organizational guardrails</li>
+                    <li>Replace IAM users with SSO and roles</li>
+                    <li>Use permission boundaries for delegated administration</li>
+                    <li>Audit IAM monthly with automated scripts</li>
+                    <li>Treat IAM policy changes as code changes - review them in PRs</li>
+                </ol>
+                <p>The effort to implement least privilege pays dividends every time you avoid a security incident.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link"><i class="fab fa-linkedin"></i></a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#10b981';
+                setTimeout(() => { button.innerHTML = originalText; button.style.background = ''; }, 2000);
+            });
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

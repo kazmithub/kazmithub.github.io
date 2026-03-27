@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Docker Security Checklist - Ahsan Kazmi</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="script-fix.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>Ahsan Kazmi</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#services" class="nav-link">Services</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#timeline" class="nav-link">Timeline</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </label>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Blog Post -->
+    <section class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Blogs
+                </a>
+                <h1 class="blog-post-title">The Ultimate Docker Security Checklist (Without the Jargon)</h1>
+                <div class="blog-meta">
+                    <span class="blog-platform">Docker Security</span>
+                    <span class="blog-date">July 15, 2025</span>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <p>Hey Devs and Container Ninjas!</p>
+
+                <p>Docker makes life easier, but let's face it, it also introduces a whole new set of security considerations. Whether you're spinning up side projects or running production clusters, security can't be an afterthought.</p>
+
+                <p>To help you stay safe without getting bogged down in docs, here's a clear, friendly Docker Security Checklist. Run through this list every time you build, deploy, or review your containers. Your future self (and your infra team) will thank you!</p>
+
+                <h2>🔄 Host & Docker Hygiene</h2>
+                <ul>
+                    <li>Keep your OS and Docker Engine updated.</li>
+                    <li>Patch your host OS and Docker regularly to prevent container escape exploits like Dirty COW or Leaky Vessels.</li>
+                </ul>
+
+                <h2>🔐 Docker Daemon Safety</h2>
+                <ul>
+                    <li>Never expose the Docker socket (/var/run/docker.sock) to containers.</li>
+                    <li>Doing this is like giving containers root access to your machine.</li>
+                    <li>Don't expose the Docker daemon over TCP without TLS.</li>
+                    <li>If you must, secure it properly using certificates.</li>
+                </ul>
+
+                <h2>👤 Container User Practices</h2>
+                <ul>
+                    <li>Run containers as a non-root user.</li>
+                    <li>Use the -u flag, define a user in the Dockerfile, or enable user namespaces (--userns-remap).</li>
+                    <li>Avoid --privileged mode unless absolutely necessary.</li>
+                    <li>It grants all capabilities and bypasses most isolation features.</li>
+                </ul>
+
+                <h2>⚙️ Capability Management</h2>
+                <ul>
+                    <li>Drop all capabilities, then add only what's needed.</li>
+                    <li>Use --cap-drop ALL and selectively --cap-add what your app truly needs.</li>
+                    <li>In Kubernetes: Set capabilities in the securityContext.</li>
+                </ul>
+
+                <h2>🚫 Prevent Escalation</h2>
+                <ul>
+                    <li>Use --security-opt=no-new-privileges.</li>
+                    <li>This blocks containers from gaining more privileges via setuid/setgid binaries.</li>
+                    <li>In Kubernetes: Set allowPrivilegeEscalation: false.</li>
+                </ul>
+
+                <h2>🌐 Network Isolation</h2>
+                <ul>
+                    <li>Avoid default inter-container communication.</li>
+                    <li>Use custom Docker networks for specific container groups.</li>
+                    <li>In Kubernetes: Apply Network Policies to control pod communication.</li>
+                </ul>
+
+                <h2>🛡 Security Modules</h2>
+                <ul>
+                    <li>Enable and enforce AppArmor, SELinux, or Seccomp profiles.</li>
+                    <li>Don't disable the default security profile—it's there for a reason!</li>
+                </ul>
+
+                <h2>🧠 Resource Limits</h2>
+                <ul>
+                    <li>Set CPU and memory limits.</li>
+                    <li>Limit the number of file descriptors and processes.</li>
+                    <li>Control container restarts with restart policies.</li>
+                    <li>This prevents accidental (or malicious) resource hogging.</li>
+                </ul>
+
+                <h2>📁 Filesystem Best Practices</h2>
+                <ul>
+                    <li>Use read-only root filesystem (--read-only).</li>
+                    <li>Mount volumes as read-only (:ro).</li>
+                    <li>Use --tmpfs for writable temp directories.</li>
+                </ul>
+
+                <h2>🔍 CI/CD Integration</h2>
+                <ul>
+                    <li>Scan images as part of your CI/CD pipeline.</li>
+                    <li>Use tools like Trivy, Snyk, or Clair to catch vulnerabilities early.</li>
+                    <li>Lint Dockerfiles and enforce best practices.</li>
+                    <li>Avoid ADD, pin versions, and never curl bash blindly.</li>
+                </ul>
+
+                <h2>🧾 Logging</h2>
+                <ul>
+                    <li>Keep Docker daemon log level at info.</li>
+                    <li>It captures useful operational data without being too noisy.</li>
+                </ul>
+
+                <h2>🧱 Rootless Docker (Advanced)</h2>
+                <ul>
+                    <li>Run Docker in rootless mode if possible.</li>
+                    <li>This drastically reduces the attack surface, especially on shared hosts.</li>
+                </ul>
+
+                <h2>🔐 Secret Management</h2>
+                <ul>
+                    <li>Use Docker Secrets to handle sensitive data.</li>
+                    <li>Don't hardcode secrets in your images or environment variables.</li>
+                    <li>In Kubernetes: Use encrypted secrets and consider tools like Vault or Sealed Secrets.</li>
+                </ul>
+
+                <h2>🔄 Supply Chain Security</h2>
+                <ul>
+                    <li>Use image signing and SBOMs (Software Bill of Materials).</li>
+                    <li>Store images in a trusted, private registry.</li>
+                    <li>Verify image provenance before deployment.</li>
+                </ul>
+
+                <h2>🧪 Bonus: Consider Podman</h2>
+                <ul>
+                    <li>Use Podman for a more secure, daemonless container runtime.</li>
+                    <li>It supports rootless containers out of the box and integrates well with SELinux.</li>
+                </ul>
+
+                <h2>Final Thoughts</h2>
+                <p>Security isn't about doing everything perfectly—it's about doing the basics consistently and reducing risk wherever you can. This checklist gives you a solid foundation for running containers securely, whether in development, staging, or production.</p>
+
+                <p>Feel free to bookmark this page or print it out as part of your deployment rituals.</p>
+
+                <p>Happy (and secure) containerizing! 🐳🔒</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

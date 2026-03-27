@@ -47,13 +47,17 @@
 
     <!-- Hero Section -->
     <section id="home" class="hero">
+        <canvas id="hero-particles" class="hero-particles"></canvas>
         <div class="hero-container">
             <div class="hero-content">
                 <div class="hero-text">
+                    <div class="hero-badge">Available for Consulting</div>
                     <h1 class="hero-title">
                         Hi, I'm <span class="highlight">Ahsan Kazmi</span>
                     </h1>
-                    <h2 class="hero-subtitle">Solutions Architect & DevOps Professional</h2>
+                    <h2 class="hero-subtitle">
+                        <span id="typed-text"></span><span class="typing-cursor">|</span>
+                    </h2>
                     <p class="hero-description">
                         Passionate about building scalable cloud infrastructure and leading high-performing teams.
                         Specialized in AWS, Terraform, and DevOps best practices with 7+ years of experience.
@@ -102,15 +106,19 @@
                         mentoring teams to adopt DevOps best practices.
                     </p>
                     <div class="about-stats">
-                        <div class="stat">
+                        <div class="stat" data-count="7">
                             <h3>7+</h3>
                             <p>Years Experience</p>
                         </div>
-                        <div class="stat">
+                        <div class="stat" data-count="50">
                             <h3>50+</h3>
                             <p>Projects Completed</p>
                         </div>
-                        <div class="stat">
+                        <div class="stat" data-count="12">
+                            <h3>12</h3>
+                            <p>Technical Articles</p>
+                        </div>
+                        <div class="stat" data-count="95">
                             <h3>95%</h3>
                             <p>Success Rate</p>
                         </div>
@@ -318,9 +326,234 @@
             <p class="blogs-intro">
                 I enjoy sharing my knowledge and experiences through technical writing and open-source projects.
                 Here are some of my recent articles and practical implementations showcasing cloud infrastructure and
-                DevOps practices.
+                DevOps practices. <strong>12 articles</strong> and counting.
             </p>
             <div class="blogs-list">
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fas fa-chart-line blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">Monitoring</span>
+                            <span class="blog-date">February 28, 2025</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-kubernetes-monitoring-datadog.html">
+                                Monitoring Kubernetes with Datadog: A Complete Guide
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            End-to-end guide to monitoring Kubernetes clusters with Datadog, covering agent deployment,
+                            custom dashboards, alerting strategies, and real-world monitoring setups from production environments.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">Kubernetes</span>
+                            <span class="blog-tag">Datadog</span>
+                            <span class="blog-tag">Monitoring</span>
+                            <span class="blog-tag">Observability</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-kubernetes-monitoring-datadog.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fab fa-docker blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">Docker Security</span>
+                            <span class="blog-date">July 15, 2025</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-docker-security-checklist.html">
+                                The Ultimate Docker Security Checklist (Without the Jargon)
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            A clear, friendly Docker security guide covering everything from host hygiene to container
+                            user practices, capability management, and advanced security techniques for developers and DevOps
+                            professionals.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">Docker</span>
+                            <span class="blog-tag">Security</span>
+                            <span class="blog-tag">Containers</span>
+                            <span class="blog-tag">DevOps</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-docker-security-checklist.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fas fa-network-wired blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">AWS Security</span>
+                            <span class="blog-date">November 8, 2024</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-delete-default-vpc.html">
+                                Why and How to Delete Default VPCs Across All AWS Regions
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Essential security hardening guide with automated scripts to safely remove default VPCs
+                            across all AWS regions, including prevention policies and monitoring strategies.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">AWS</span>
+                            <span class="blog-tag">VPC</span>
+                            <span class="blog-tag">Security</span>
+                            <span class="blog-tag">Automation</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-delete-default-vpc.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fas fa-dollar-sign blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">AWS Cost Management</span>
+                            <span class="blog-date">August 15, 2024</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-aws-cost-optimization.html">
+                                Infrastructure Cost Optimization: How I Saved 40% on AWS
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Real-world case study on cutting AWS costs by 40% through right-sizing, Reserved Instances,
+                            storage optimization, and automated cost monitoring strategies.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">AWS</span>
+                            <span class="blog-tag">Cost Optimization</span>
+                            <span class="blog-tag">FinOps</span>
+                            <span class="blog-tag">Best Practices</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-aws-cost-optimization.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fab fa-github blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">CI/CD</span>
+                            <span class="blog-date">May 3, 2024</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-github-actions-aws.html">
+                                GitHub Actions for AWS: The Complete CI/CD Pipeline Guide
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Production-ready guide to building CI/CD pipelines with GitHub Actions for AWS, covering OIDC auth,
+                            ECR/ECS deployments, Terraform workflows, and multi-environment strategies.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">GitHub Actions</span>
+                            <span class="blog-tag">AWS</span>
+                            <span class="blog-tag">CI/CD</span>
+                            <span class="blog-tag">DevOps</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-github-actions-aws.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fas fa-layer-group blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">Terraform</span>
+                            <span class="blog-date">January 20, 2024</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-terraform-state-management.html">
+                                Terraform State Management Best Practices for Production
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Battle-tested strategies for managing Terraform state at scale, including remote backends,
+                            state locking, workspace strategies, and disaster recovery for state files.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">Terraform</span>
+                            <span class="blog-tag">IaC</span>
+                            <span class="blog-tag">State Management</span>
+                            <span class="blog-tag">Best Practices</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-terraform-state-management.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fas fa-user-shield blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">AWS Security</span>
+                            <span class="blog-date">October 12, 2023</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-aws-iam-least-privilege.html">
+                                AWS IAM Least Privilege: A Practical Guide
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Hands-on guide to implementing least privilege IAM policies in AWS, covering Access Analyzer,
+                            permission boundaries, SCPs, and automated policy generation from real consulting engagements.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">AWS</span>
+                            <span class="blog-tag">IAM</span>
+                            <span class="blog-tag">Security</span>
+                            <span class="blog-tag">Zero Trust</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-aws-iam-least-privilege.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
                 <article class="blog-row">
                     <div class="blog-icon-container">
                         <i class="fab fa-aws blog-icon"></i>
@@ -389,39 +622,6 @@
                     </div>
                     <div class="blog-content">
                         <div class="blog-meta">
-                            <span class="blog-platform">AWS EKS Project</span>
-                            <span class="blog-date">September 12, 2022</span>
-                        </div>
-                        <h3 class="blog-title">
-                            <a href="blog-eks-java-deployment.html">
-                                AWS EKS Java Application Deployment
-                            </a>
-                        </h3>
-                        <p class="blog-description">
-                            Complete implementation guide for deploying Java applications on Amazon EKS with
-                            best practices for containerization and CI/CD pipelines.
-                        </p>
-                        <div class="blog-tags">
-                            <span class="blog-tag">AWS EKS</span>
-                            <span class="blog-tag">Kubernetes</span>
-                            <span class="blog-tag">Java</span>
-                            <span class="blog-tag">CI/CD</span>
-                        </div>
-                    </div>
-                    <div class="blog-action">
-                        <a href="blog-eks-java-deployment.html" class="blog-link">
-                            Read Article <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </article>
-
-
-                <article class="blog-row">
-                    <div class="blog-icon-container">
-                        <i class="fab fa-aws blog-icon"></i>
-                    </div>
-                    <div class="blog-content">
-                        <div class="blog-meta">
                             <span class="blog-platform">AWS Architecture</span>
                             <span class="blog-date">March 15, 2023</span>
                         </div>
@@ -443,6 +643,38 @@
                     </div>
                     <div class="blog-action">
                         <a href="blog-aws-disaster-recovery.html" class="blog-link">
+                            Read Article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-row">
+                    <div class="blog-icon-container">
+                        <i class="fab fa-aws blog-icon"></i>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span class="blog-platform">AWS EKS Project</span>
+                            <span class="blog-date">September 12, 2022</span>
+                        </div>
+                        <h3 class="blog-title">
+                            <a href="blog-eks-java-deployment.html">
+                                AWS EKS Java Application Deployment
+                            </a>
+                        </h3>
+                        <p class="blog-description">
+                            Complete implementation guide for deploying Java applications on Amazon EKS with
+                            best practices for containerization and CI/CD pipelines.
+                        </p>
+                        <div class="blog-tags">
+                            <span class="blog-tag">AWS EKS</span>
+                            <span class="blog-tag">Kubernetes</span>
+                            <span class="blog-tag">Java</span>
+                            <span class="blog-tag">CI/CD</span>
+                        </div>
+                    </div>
+                    <div class="blog-action">
+                        <a href="blog-eks-java-deployment.html" class="blog-link">
                             Read Article <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -475,38 +707,6 @@
                     </div>
                     <div class="blog-action">
                         <a href="blog-aws-cis-compliance.html" class="blog-link">
-                            Read Article <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </article>
-
-                <article class="blog-row">
-                    <div class="blog-icon-container">
-                        <i class="fas fa-network-wired blog-icon"></i>
-                    </div>
-                    <div class="blog-content">
-                        <div class="blog-meta">
-                            <span class="blog-platform">AWS Security</span>
-                            <span class="blog-date">November 8, 2024</span>
-                        </div>
-                        <h3 class="blog-title">
-                            <a href="blog-delete-default-vpc.html">
-                                Why and How to Delete Default VPCs Across All AWS Regions
-                            </a>
-                        </h3>
-                        <p class="blog-description">
-                            Essential security hardening guide with automated scripts to safely remove default VPCs
-                            across all AWS regions, including prevention policies and monitoring strategies.
-                        </p>
-                        <div class="blog-tags">
-                            <span class="blog-tag">AWS</span>
-                            <span class="blog-tag">VPC</span>
-                            <span class="blog-tag">Security</span>
-                            <span class="blog-tag">Automation</span>
-                        </div>
-                    </div>
-                    <div class="blog-action">
-                        <a href="blog-delete-default-vpc.html" class="blog-link">
                             Read Article <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -860,18 +1060,39 @@
         </div>
     </section>
 
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
-                <div class="footer-social">
-                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="mailto:xnkazmi@gmail.com" class="social-link">
-                        <i class="fas fa-envelope"></i>
-                    </a>
+                <div class="footer-brand">
+                    <h3>Ahsan Kazmi</h3>
+                    <p>Solutions Architect & DevOps Professional</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#services">Services</a>
+                    <a href="#blogs">Blog</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                    <div class="footer-social">
+                        <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://github.com/kazmithub" target="_blank" class="social-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="mailto:xnkazmi@gmail.com" class="social-link">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper function to get section index for determining direction
     function getSectionIndex(sectionId) {
-        const sections = ['home', 'about', 'blogs', 'skills', 'timeline', 'contact'];
+        const sections = ['home', 'about', 'services', 'blogs', 'skills', 'timeline', 'contact'];
         return sections.indexOf(sectionId);
     }
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, observerOptions);
 
     // Observe elements for animation
-    const animateElements = document.querySelectorAll('.timeline-item, .skill-category, .cert-item');
+    const animateElements = document.querySelectorAll('.timeline-item, .skill-category, .cert-item, .service-card, .contact-item');
     
     animateElements.forEach(el => {
         el.style.opacity = '0';
@@ -299,10 +299,200 @@ document.addEventListener('DOMContentLoaded', () => {
             rect.top >= -300 &&
             rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 300
         );
-        
+
         if (isInView) {
             // Small delay to ensure DOM is fully rendered
             setTimeout(animateSkillBars, 300);
         }
+    }
+
+    // ========== TYPING ANIMATION ==========
+    const typedElement = document.getElementById('typed-text');
+    if (typedElement) {
+        const roles = [
+            'Solutions Architect',
+            'DevOps Professional',
+            'Cloud Infrastructure Expert',
+            'Terraform Specialist',
+            'AWS Certified Architect'
+        ];
+        let roleIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typeSpeed = 80;
+
+        function typeText() {
+            const currentRole = roles[roleIndex];
+
+            if (isDeleting) {
+                typedElement.textContent = currentRole.substring(0, charIndex - 1);
+                charIndex--;
+                typeSpeed = 40;
+            } else {
+                typedElement.textContent = currentRole.substring(0, charIndex + 1);
+                charIndex++;
+                typeSpeed = 80;
+            }
+
+            if (!isDeleting && charIndex === currentRole.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                roleIndex = (roleIndex + 1) % roles.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(typeText, typeSpeed);
+        }
+
+        setTimeout(typeText, 1000);
+    }
+
+    // ========== HERO PARTICLES ==========
+    const canvas = document.getElementById('hero-particles');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            const hero = canvas.parentElement;
+            canvas.width = hero.offsetWidth;
+            canvas.height = hero.offsetHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 60; i++) {
+            particles.push(new Particle());
+        }
+
+        function connectParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.08 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+
+        animateParticles();
+    }
+
+    // ========== BACK TO TOP BUTTON ==========
+    const backToTop = document.getElementById('back-to-top');
+    if (backToTop) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ========== BLOG ROW STAGGER ANIMATION ==========
+    const blogRows = document.querySelectorAll('.blog-row');
+    const blogObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('animate-in');
+                }, index * 100);
+                blogObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    blogRows.forEach(row => blogObserver.observe(row));
+
+    // ========== COUNTER ANIMATION FOR STATS ==========
+    const stats = document.querySelectorAll('.stat[data-count]');
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.dataset.count);
+                const h3 = entry.target.querySelector('h3');
+                const suffix = h3.textContent.includes('+') ? '+' : h3.textContent.includes('%') ? '%' : '';
+                let current = 0;
+                const increment = target / 40;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    h3.textContent = Math.floor(current) + suffix;
+                }, 30);
+                statsObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    stats.forEach(stat => statsObserver.observe(stat));
+
+    // ========== READING PROGRESS BAR (Blog Pages) ==========
+    if (document.querySelector('.blog-post-content')) {
+        const progressBar = document.createElement('div');
+        progressBar.classList.add('reading-progress');
+        document.body.prepend(progressBar);
+
+        window.addEventListener('scroll', () => {
+            const content = document.querySelector('.blog-post-content');
+            const rect = content.getBoundingClientRect();
+            const contentTop = rect.top + window.scrollY;
+            const contentHeight = content.offsetHeight;
+            const scrolled = window.scrollY - contentTop;
+            const progress = Math.min(Math.max(scrolled / (contentHeight - window.innerHeight), 0), 1);
+            progressBar.style.width = (progress * 100) + '%';
+        });
     }
 });

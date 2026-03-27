@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrastructure Cost Optimization: How I Saved 40% on AWS - Ahsan Kazmi</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles-new.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="script-fix.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><h2>Ahsan Kazmi</h2></div>
+            <ul class="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#services" class="nav-link">Services</a></li>
+                <li><a href="index.html#blogs" class="nav-link">Blogs</a></li>
+                <li><a href="index.html#skills" class="nav-link">Skills</a></li>
+                <li><a href="index.html#timeline" class="nav-link">Timeline</a></li>
+                <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"><i class="fas fa-sun"></i><i class="fas fa-moon"></i></div>
+                </label>
+            </div>
+            <div class="hamburger"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
+        </div>
+    </nav>
+
+    <section class="blog-post">
+        <div class="container">
+            <div class="blog-post-header">
+                <a href="index.html#blogs" class="back-link"><i class="fas fa-arrow-left"></i> Back to Blogs</a>
+                <h1 class="blog-post-title">Infrastructure Cost Optimization: How I Saved 40% on AWS</h1>
+                <div class="blog-meta">
+                    <span class="blog-platform">AWS Cost Management</span>
+                    <span class="blog-date">August 15, 2024</span>
+                </div>
+            </div>
+
+            <div class="blog-post-content">
+                <p>When an e-commerce client came to me with a $45,000/month AWS bill that was growing 15% month-over-month, we knew something had to change. Over 8 weeks, we systematically analyzed every line item and brought the bill down to $27,000/month - a 40% reduction - without degrading performance or reliability. Here's exactly how we did it.</p>
+
+                <h2>Step 1: AWS Cost Explorer Deep Dive</h2>
+                <p>Before optimizing anything, you need to understand where the money is going. Cost Explorer is your starting point:</p>
+                <ul>
+                    <li><strong>Group by service</strong> to find the top cost drivers (usually EC2, RDS, and data transfer)</li>
+                    <li><strong>Group by tag</strong> to identify which teams or projects are spending the most</li>
+                    <li><strong>Enable hourly granularity</strong> to spot usage patterns (are dev environments running 24/7?)</li>
+                    <li><strong>Check untagged resources</strong> - these are often forgotten resources nobody owns</li>
+                </ul>
+
+                <p>For this client, the breakdown was: EC2 (38%), RDS (22%), Data Transfer (15%), NAT Gateway (12%), S3 (8%), Other (5%).</p>
+
+                <h2>Step 2: Right-Sizing EC2 Instances</h2>
+                <p>This is almost always the biggest win. AWS Compute Optimizer and CloudWatch metrics tell you exactly which instances are over-provisioned:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Get right-sizing recommendations from Compute Optimizer
+aws compute-optimizer get-ec2-instance-recommendations \
+  --query 'instanceRecommendations[*].{
+    InstanceId: instanceArn,
+    Current: currentInstanceType,
+    Recommended: recommendationOptions[0].instanceType,
+    Savings: recommendationOptions[0].estimatedMonthlySavings.value
+  }' --output table
+
+# Check actual CPU utilization over 14 days
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/EC2 \
+  --metric-name CPUUtilization \
+  --dimensions Name=InstanceId,Value=i-1234567890abcdef0 \
+  --start-time $(date -d '-14 days' -u +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 3600 \
+  --statistics Average Maximum \
+  --output table</code></pre>
+                </div>
+
+                <p>What we found: 60% of EC2 instances were using less than 20% of their allocated CPU. We moved from m5.2xlarge to m5.large for most application servers, saving $8,400/month.</p>
+
+                <h2>Step 3: Reserved Instances and Savings Plans</h2>
+                <p>For workloads with predictable usage (databases, baseline application servers), Savings Plans provide up to 72% discount:</p>
+                <ul>
+                    <li><strong>Compute Savings Plans</strong> - Most flexible, covers EC2, Fargate, and Lambda</li>
+                    <li><strong>EC2 Instance Savings Plans</strong> - Higher discount but locked to instance family</li>
+                    <li><strong>Reserved Instances for RDS</strong> - 1-year No Upfront RI is my default recommendation</li>
+                </ul>
+                <p>We purchased 1-year Compute Savings Plans covering 70% of baseline usage, saving $6,200/month on EC2 and Fargate combined.</p>
+
+                <h2>Step 4: NAT Gateway - The Hidden Bill Killer</h2>
+                <p>NAT Gateway charges $0.045/GB for data processing plus hourly charges. For data-heavy applications, this adds up fast. Our client was paying $5,400/month on NAT Gateways alone.</p>
+
+                <p>Solutions we implemented:</p>
+                <ul>
+                    <li><strong>VPC endpoints for S3 and DynamoDB</strong> - Free and keeps traffic off the NAT Gateway</li>
+                    <li><strong>Interface endpoints for ECR, CloudWatch, STS</strong> - $7/month each vs hundreds in NAT costs</li>
+                    <li><strong>Moved batch processing</strong> to public subnets with security groups instead of NAT</li>
+                </ul>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Terraform: VPC endpoints to reduce NAT Gateway costs
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.us-east-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private.id]
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.us-east-1.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.us-east-1.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+}</code></pre>
+                </div>
+
+                <p>Result: NAT Gateway costs dropped from $5,400 to $1,200/month.</p>
+
+                <h2>Step 5: S3 Storage Optimization</h2>
+                <p>The client had 15TB of S3 data, most of which hadn't been accessed in months. We implemented intelligent tiering and lifecycle policies:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Terraform: S3 lifecycle rules
+resource "aws_s3_bucket_lifecycle_configuration" "app_data" {
+  bucket = aws_s3_bucket.app_data.id
+
+  rule {
+    id     = "transition-to-ia"
+    status = "Enabled"
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+    transition {
+      days          = 90
+      storage_class = "GLACIER_IR"
+    }
+    transition {
+      days          = 365
+      storage_class = "DEEP_ARCHIVE"
+    }
+  }
+
+  rule {
+    id     = "cleanup-incomplete-uploads"
+    status = "Enabled"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}</code></pre>
+                </div>
+
+                <h2>Step 6: CloudWatch Log Costs</h2>
+                <p>CloudWatch Logs ingestion costs $0.50/GB. Our client was ingesting 200GB/day of logs, most of which were debug-level application logs nobody looked at.</p>
+                <ul>
+                    <li>Reduced application log levels from DEBUG to INFO in production</li>
+                    <li>Set log retention to 30 days instead of "Never Expire"</li>
+                    <li>Moved long-term log storage to S3 via Kinesis Firehose at a fraction of the cost</li>
+                </ul>
+                <p>Savings: $2,100/month on CloudWatch alone.</p>
+
+                <h2>Step 7: Automated Cost Alerts</h2>
+                <p>Prevention is better than cure. We set up AWS Budgets to catch cost spikes early:</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
+                    <pre><code># Terraform: AWS Budget alerts
+resource "aws_budgets_budget" "monthly" {
+  name         = "monthly-total-budget"
+  budget_type  = "COST"
+  limit_amount = "30000"
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
+
+  notification {
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 80
+    threshold_type            = "PERCENTAGE"
+    notification_type         = "FORECASTED"
+    subscriber_email_addresses = ["platform-team@company.com"]
+  }
+
+  notification {
+    comparison_operator       = "GREATER_THAN"
+    threshold                 = 100
+    threshold_type            = "PERCENTAGE"
+    notification_type         = "ACTUAL"
+    subscriber_email_addresses = ["cto@company.com", "platform-team@company.com"]
+  }
+}</code></pre>
+                </div>
+
+                <h2>Step 8: Dev/Staging Environment Scheduling</h2>
+                <p>Dev and staging environments don't need to run 24/7. We implemented automatic shutdown schedules:</p>
+                <ul>
+                    <li>Dev environments: Running 8am-8pm weekdays only (60% savings)</li>
+                    <li>Staging: Running 6am-10pm weekdays, 10am-6pm weekends (50% savings)</li>
+                    <li>Used AWS Instance Scheduler for EC2 and RDS</li>
+                    <li>Set ECS desired count to 0 during off-hours via EventBridge + Lambda</li>
+                </ul>
+
+                <h2>Results Summary</h2>
+                <p>Here's the final breakdown of savings:</p>
+                <ul>
+                    <li><strong>EC2 right-sizing:</strong> -$8,400/month</li>
+                    <li><strong>Savings Plans:</strong> -$6,200/month</li>
+                    <li><strong>NAT Gateway optimization:</strong> -$4,200/month</li>
+                    <li><strong>CloudWatch log reduction:</strong> -$2,100/month</li>
+                    <li><strong>S3 lifecycle policies:</strong> -$1,800/month</li>
+                    <li><strong>Dev/staging scheduling:</strong> -$2,300/month</li>
+                </ul>
+                <p><strong>Total monthly savings: ~$25,000 (from $45K to ~$20K after all optimizations settled)</strong></p>
+
+                <h2>Monthly Cost Review Checklist</h2>
+                <p>I now run this checklist monthly with every client:</p>
+                <ol>
+                    <li>Review Cost Explorer for anomalies and trends</li>
+                    <li>Check Compute Optimizer for new right-sizing recommendations</li>
+                    <li>Audit untagged resources and assign ownership</li>
+                    <li>Review Savings Plan utilization and coverage</li>
+                    <li>Check for idle resources (unused EBS volumes, unattached EIPs, empty load balancers)</li>
+                    <li>Verify dev/staging schedules are working correctly</li>
+                    <li>Review data transfer costs for new optimization opportunities</li>
+                </ol>
+
+                <h2>Conclusion</h2>
+                <p>AWS cost optimization isn't a one-time project - it's an ongoing practice. The key is building cost awareness into your team's culture and making it part of every architecture decision. Start with the quick wins (right-sizing, Savings Plans, NAT Gateway optimization) and build from there. The 40% savings we achieved wasn't magic - it was systematic analysis and disciplined execution.</p>
+
+                <p>If your AWS bill is higher than it should be, feel free to <a href="https://cal.com/ahsan-kazmi/consultation-30-minutes">book a consultation</a> - I'd love to help you find those savings.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Ahsan Kazmi. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://linkedin.com/in/ahsan-kazmi/" target="_blank" class="social-link"><i class="fab fa-linkedin"></i></a>
+                    <a href="mailto:xnkazmi@gmail.com" class="social-link"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#10b981';
+                setTimeout(() => { button.innerHTML = originalText; button.style.background = ''; }, 2000);
+            });
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
